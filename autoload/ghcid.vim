@@ -6,6 +6,10 @@ if !exists("g:ghcid_open_on_error")
     let g:ghcid_open_on_error = 1
 endif
 
+if !exists("g:ghcid_open_on_warning")
+    let g:ghcid_open_on_warning = 0
+endif
+
 
 
 function! ghcid#start(args) abort
@@ -30,27 +34,52 @@ function! ghcid#start(args) abort
         \ })
 endfunction
 
+let s:error_count = 0
+let s:warning_count = 0
+
 function! s:ghcid_output_handler(quickfix_buffer, channel, msg) abort
     for rawline in split(a:msg, "[\r\n]")
         let line = s:clean(rawline)
 
         if match(line, '^Reloading...') isnot -1
+            echo "Reloading..."
             call s:clear_quickfix()
+            let s:error_count = 0
+            let s:warning_count = 0
+            continue
 
         elseif match(line, '^All good') isnot -1
             cclose
-            echo 'All good'
+            echo "All good"
+            continue
 
-        elseif match(line, 'error') isnot -1
-            if g:ghcid_open_on_error == 1
-                copen
-                wincmd p
-            endif
+        elseif match(line, ' error:') isnot -1
+            let s:error_count +=1
+
+        elseif match(line, ' warning:') isnot -1
+            let s:warning_count +=1
 
         endif
 
     caddexpr line
     endfor
+
+    if s:error_count > 0
+        echo "Compiler errors: " . s:error_count
+        if g:ghcid_open_on_error == 1
+            copen
+            wincmd p
+        endif
+    endif
+
+    if s:error_count == 0 && s:warning_count > 0
+        echo "Compiled with " . s:warning_count . " warnings"
+        if g:ghcid_open_on_warning == 1
+            copen
+            wincmd p
+        endif
+    endif
+
 endfunction
 
 function! s:clear_quickfix()
