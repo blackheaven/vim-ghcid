@@ -44,18 +44,18 @@ function! ghcid#start() abort
     echomsg "Starting ghcid..."
 
     call term_start(cmd, {
-        \ 'out_io':  'buffer',      'err_io':  'buffer',
-        \ 'out_buf': output_buffer, 'err_buf': output_buffer,
+        \ 'out_io':  'buffer',
+        \ 'out_buf': output_buffer,
         \ 'term_kill': 'term',
         \ 'hidden': v:true,
         \ 'term_name': 'ghcid',
         \ 'out_cb': function('s:ghcid_output_handler', [quickfix_buffer]),
-        \ 'err_cb': function('s:ghcid_output_handler', [quickfix_buffer]),
         \ })
 
     let s:ghcid_running = 1
 endfunction
 
+let s:reading_garbage = 1
 function! s:ghcid_output_handler(quickfix_buffer, channel, msg) abort
     for rawline in split(a:msg, "[\r\n]")
         let line = s:clean(rawline)
@@ -65,23 +65,30 @@ function! s:ghcid_output_handler(quickfix_buffer, channel, msg) abort
             call s:clear_quickfix()
             let s:error_count = 0
             let s:warning_count = 0
+            let s:reading_garbage = 1
             continue
 
         elseif match(line, '^All good') isnot -1
             cclose
-            echo "All good"
+            echo line
             continue
 
         elseif match(line, ' error:') isnot -1
             let s:error_count +=1
+            let s:reading_garbage = 0
 
         elseif match(line, ' warning:') isnot -1
             let s:warning_count +=1
+            let s:reading_garbage = 0
 
         endif
 
-    caddexpr line
+        if s:reading_garbage isnot 1
+            caddexpr line
+        endif
+
     endfor
+
 
     if s:error_count > 0
         echo "Compiler errors: " . s:error_count
@@ -106,7 +113,19 @@ function! s:clear_quickfix()
 endfunction
 
 function! s:clean(line)
-    return substitute(a:line, '\[^/\p\]', '', 'g')
+    let garbage = [
+        \ '\[^/\p\]',
+        \ '',
+        \ '',
+        \ '',
+        \ '\e]\d',
+        \ '\e[\(\d\+\)\?\(;\d\+\)*m',
+        \ '\e[m',
+        \ '\]\(\d\+\)\?\(;\d\+\)*',
+        \ ]
+    let remove = '\(' . join(garbage, '\|') . '\)'
+    let mostly_clean =  substitute(a:line, remove, '', 'g')
+    return substitute(mostly_clean, '^;', ' ', 'g')
 endfunction
 
 function! s:quickfix_buffer() abort
