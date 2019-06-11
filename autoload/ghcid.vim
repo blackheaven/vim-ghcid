@@ -41,6 +41,7 @@ function! ghcid#start() abort
     let quickfix_buffer = s:quickfix_buffer()
     let output_buffer = s:scratch_buffer()
     let cmd = g:ghcid_cmd . ' --color=never'
+    echomsg "Starting ghcid..."
 
     call term_start(cmd, {
         \ 'out_io':  'buffer',      'err_io':  'buffer',
@@ -110,12 +111,14 @@ endfunction
 
 function! s:quickfix_buffer() abort
   copen
-  return winbufnr('.')
+  let buffer = winbufnr('.')
+  cclose
+  return buffer
 endfunction
 
 function! s:scratch_buffer() abort
   new
-  file 'ghcid_output_buffer'
+  exe 'sil! file "ghcid_output_buffer"'
   setl buftype=nofile
   setl nobuflisted
   let buffer = winbufnr('.')
