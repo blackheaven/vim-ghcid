@@ -1,2 +1,2 @@
-command! -bar -nargs=* GhcidStart call ghcid#start(<q-args>)
+command! GhcidStart call ghcid#start()
 command! GhcidStop  call ghcid#stop()

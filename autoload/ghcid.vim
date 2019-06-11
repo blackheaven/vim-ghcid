@@ -11,8 +11,27 @@ if !exists("g:ghcid_open_on_warning")
 endif
 
 
+let s:ghcid_running = 0
+let s:error_count = 0
+let s:warning_count = 0
 
-function! ghcid#start(args) abort
+function! ghcid#stop()
+    if s:ghcid_running isnot 0
+        let buffer = bufnr('ghcid')
+        call term_setkill(buffer, 'term')
+        exe 'bdel! ' . buffer
+        cclose
+        let s:ghcid_running = 0
+        echomsg "Ghcid stopped"
+    endif
+endfunction
+
+function! ghcid#start() abort
+    if s:ghcid_running isnot 0
+        echomsg "Ghcid is already running"
+        return
+    endif
+
     if !executable(g:ghcid_cmd)
         echomsg g:ghcid_cmd . " not found"
         return
@@ -32,10 +51,9 @@ function! ghcid#start(args) abort
         \ 'out_cb': function('s:ghcid_output_handler', [quickfix_buffer]),
         \ 'err_cb': function('s:ghcid_output_handler', [quickfix_buffer]),
         \ })
-endfunction
 
-let s:error_count = 0
-let s:warning_count = 0
+    let s:ghcid_running = 1
+endfunction
 
 function! s:ghcid_output_handler(quickfix_buffer, channel, msg) abort
     for rawline in split(a:msg, "[\r\n]")
