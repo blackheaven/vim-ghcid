@@ -2,12 +2,20 @@ if !exists("g:ghcid_cmd")
     let g:ghcid_cmd = "ghcid"
 endif
 
+if !exists("g:ghcid_args")
+    let g:ghcid_args = ""
+endif
+
 if !exists("g:ghcid_open_on_error")
     let g:ghcid_open_on_error = 1
 endif
 
 if !exists("g:ghcid_open_on_warning")
     let g:ghcid_open_on_warning = 0
+endif
+
+if !exists("g:ghcid_verbose")
+    let g:ghcid_verbose = 0
 endif
 
 
@@ -32,7 +40,7 @@ function! ghcid#start() abort
         return
     endif
 
-    if !executable(g:ghcid_cmd)
+    if !executable(g:ghcid)
         echomsg g:ghcid_cmd . " not found"
         return
     endif
@@ -40,8 +48,8 @@ function! ghcid#start() abort
     call s:clear_quickfix()
     let quickfix_buffer = s:quickfix_buffer()
     let output_buffer = s:scratch_buffer()
-    let cmd = g:ghcid_cmd . ' --color=never'
-    echomsg "Starting ghcid..."
+    let cmd = g:ghcid_cmd . ' --color=never ' . g:ghcid_args
+    echomsg "Starting ghcid " . g:ghcid_args
 
     call term_start(cmd, {
         \ 'out_io':  'buffer',
@@ -83,7 +91,7 @@ function! s:ghcid_output_handler(quickfix_buffer, channel, msg) abort
 
         endif
 
-        if s:reading_garbage isnot 1
+        if g:ghcid_verbose is 1 || s:reading_garbage isnot 1
             caddexpr line
         endif
 
