@@ -40,7 +40,7 @@ function! ghcid#start() abort
         return
     endif
 
-    if !executable(g:ghcid)
+    if !executable(g:ghcid_cmd)
         echomsg g:ghcid_cmd . " not found"
         return
     endif
