@@ -2,10 +2,6 @@ if !exists("g:ghcid_cmd")
     let g:ghcid_cmd = "ghcid"
 endif
 
-if !exists("g:ghcid_args")
-    let g:ghcid_args = ""
-endif
-
 if !exists("g:ghcid_open_on_error")
     let g:ghcid_open_on_error = 1
 endif
@@ -34,7 +30,7 @@ function! ghcid#stop()
     endif
 endfunction
 
-function! ghcid#start() abort
+function! ghcid#start(ghcid_args = "") abort
     if s:ghcid_running isnot 0
         echomsg "Ghcid is already running"
         return
@@ -48,8 +44,8 @@ function! ghcid#start() abort
     call s:clear_quickfix()
     let quickfix_buffer = s:quickfix_buffer()
     let output_buffer = s:scratch_buffer()
-    let cmd = g:ghcid_cmd . ' --color=never ' . g:ghcid_args
-    echomsg "Starting ghcid " . g:ghcid_args
+    let cmd = g:ghcid_cmd . ' --color=never ' . a:ghcid_args
+    echomsg "Starting ghcid " . a:ghcid_args
 
     call term_start(cmd, {
         \ 'out_io':  'buffer',

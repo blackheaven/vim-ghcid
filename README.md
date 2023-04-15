@@ -13,8 +13,13 @@ Compatible with `Vundle`, `Pathogen`, `Vim-plug`, etc.
 
 ## Usage
 
-Start Ghcid with `:GhcidStart`. Stop it with `:GhcidStop`
+Start Ghcid with `:GhcidStart [ghcid args]`. Stop it with `:GhcidStop`
 
+Example with `[ghcid args]`:
+
+```
+:GhcidStart --warnings --test testModule.test
+```
 
 ## Configuration
 
@@ -23,12 +28,6 @@ Configure the *ghcid* command to use. Useful if it's outside your *PATH*
 
 ```vim
 let g:ghcid_cmd = "ghcid"
-```
-
-Additional *ghcid* CLI arguments to use (default = ""):
-
-```vim
-let g:ghcid_args = "--warnings --test testModule.test"
 ```
 
 Show all of ghcid's output in the quickfix window (default = 0):
